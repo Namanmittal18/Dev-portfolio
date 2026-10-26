@@ -18,73 +18,88 @@ function updateTime() {
   minutes = minutes < 10 ? "0" + minutes : minutes;
   const timeZone = "IST";
 
-  document.getElementById("year").textContent = `© ${year}`;
-  document.getElementById(
-    "time"
-  ).textContent = `${hours}:${minutes} ${period} ${timeZone}`;
+  const yearEl = document.getElementById("year");
+  const timeEl = document.getElementById("time");
+  if (yearEl) yearEl.textContent = `© ${year}`;
+  if (timeEl) timeEl.textContent = `${hours}:${minutes} ${period} ${timeZone}`;
 }
 
 updateTime();
 setInterval(updateTime, 60000);
 
 window.addEventListener("load", () => {
-    imagesLoaded(document.querySelector("#main"), { background: true }, () => {
-      const vscroll = new LocomotiveScroll({
-        el: document.querySelector("#main"),
-        smooth: true,
-      });
-    });
-  });
-  
+  const mainElem = document.querySelector("#main");
+  if (mainElem && typeof LocomotiveScroll !== "undefined") {
+    try {
+      if (typeof imagesLoaded !== "undefined") {
+        imagesLoaded(mainElem, { background: true }, () => {
+          new LocomotiveScroll({
+            el: mainElem,
+            smooth: true,
+          });
+        });
+      } else {
+        new LocomotiveScroll({
+          el: mainElem,
+          smooth: true,
+        });
+      }
+    } catch (e) {
+      console.warn("LocomotiveScroll initialization:", e);
+    }
+  }
+});
 
 function heroAnimation() {
-  var tl = gsap.timeline();
-  tl.from("#nav", {
-    y: "-10",
-    opacity: 0,
-    duration: 1.2,
-    ease: Expo.easeInOut,
-  })
+  if (typeof gsap !== "undefined") {
+    var tl = gsap.timeline();
+    tl.from("#nav", {
+      y: "-10",
+      opacity: 0,
+      duration: 1.2,
+      ease: "expo.inOut",
+    });
+  }
 }
 
-heroAnimation();
-
-//to skew cursor mouse
-function skewMouse() {
-  let xscale = 1;
-  let yscale = 1;
-  let xprev = 0;
-  let yprev = 0;
-
-  window.addEventListener("mousemove", (dets) => {
-    clearTimeout(timer);
-    let xdiff = dets.clientX - xprev;
-    let ydiff = dets.clientY - yprev;
-
-    xscale = gsap.utils.clamp(0.8, 1.2, dets.clientX - xprev);
-    yscale = gsap.utils.clamp(0.8, 1.2, dets.clientY - yprev);
-
-    yprev = dets.clientY;
-    xprev = dets.clientX;
-
-    cursorMouse(xscale, yscale);
-    
-    timer = setTimeout(() => {
-      Follower.style.transform = `translate(${dets.clientX}px, ${dets.clientY}px) scale(${xscale}, ${yscale})`;
-    }, 100);
-  });
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", heroAnimation);
+} else {
+  heroAnimation();
 }
 
-skewMouse();
+// Smooth cursor mouse follower
+let xscale = 1;
+let yscale = 1;
+let xprev = 0;
+let yprev = 0;
 
-function cursorMouse(xscale, yscale) {
-  window.addEventListener("mousemove", (dets) => {
-    Follower.style.transform = `translate(${dets.clientX}px, ${dets.clientY}px) scale(${xscale}, ${yscale})`;
-  });
+window.addEventListener("mousemove", (dets) => {
+  clearTimeout(timer);
 
-  window.addEventListener("mouseleave", () => {
-    Follower.style.opacity = 0;
-  });
-}
+  let xdiff = Math.abs(dets.clientX - xprev);
+  let ydiff = Math.abs(dets.clientY - yprev);
 
-cursorMouse();
+  xscale = typeof gsap !== "undefined" ? gsap.utils.clamp(0.8, 1.2, 1 + xdiff * 0.008) : 1;
+  yscale = typeof gsap !== "undefined" ? gsap.utils.clamp(0.8, 1.2, 1 + ydiff * 0.008) : 1;
+
+  xprev = dets.clientX;
+  yprev = dets.clientY;
+
+  if (Follower) {
+    Follower.style.opacity = "1";
+    Follower.style.transform = `translate(${dets.clientX - 5}px, ${dets.clientY - 5}px) scale(${xscale}, ${yscale})`;
+  }
+
+  timer = setTimeout(() => {
+    if (Follower) {
+      Follower.style.transform = `translate(${dets.clientX - 5}px, ${dets.clientY - 5}px) scale(1, 1)`;
+    }
+  }, 100);
+});
+
+window.addEventListener("mouseleave", () => {
+  if (Follower) {
+    Follower.style.opacity = "0";
+  }
+});

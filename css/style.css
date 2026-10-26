@@ -27,7 +27,10 @@ body{
     transition: all cubic-bezier(0.19, 1, 0.22, 1) 0.4s;
     width: 10px;
     height: 10px;
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
     z-index: 9999;
     border-radius: 50%;
     background-color: #00ff00;
@@ -171,7 +174,9 @@ body{
     color: black;
     z-index: 99999;
     border-radius: 50%;
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
     transform: translate(-50%, -50%);
     pointer-events: none;
     display: flex;
